@@ -132,6 +132,12 @@ static inline bool may_have_side_effects(
 			if ((opline->op1_type & (IS_VAR|IS_TMP_VAR)) && (opline->op2_type & (IS_VAR|IS_TMP_VAR))) {
 				return true;
 			}
+			/* Reading an undefined variable emits a "Undefined variable"
+			 * warning. */
+			if ((opline->op1_type == IS_CV && (OP1_INFO() & MAY_BE_UNDEF))
+			 || (opline->op2_type == IS_CV && (OP2_INFO() & MAY_BE_UNDEF))) {
+				return true;
+			}
 			return false;
 		case ZEND_ROPE_END:
 			/* TODO: Rope dce optimization, see #76446 */
