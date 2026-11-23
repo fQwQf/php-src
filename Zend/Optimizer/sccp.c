@@ -512,9 +512,9 @@ static inline zend_result ct_eval_add_array_elem(zval *result, zval *value, cons
 
 	switch (Z_TYPE_P(key)) {
 		case IS_NULL:
-			SEPARATE_ARRAY(result);
-			value = zend_hash_update(Z_ARR_P(result), ZSTR_EMPTY_ALLOC(), value);
-			break;
+			/* "Using null as an array offset is deprecated" is emitted at
+			 * run-time. */
+			return FAILURE;
 		case IS_FALSE:
 			SEPARATE_ARRAY(result);
 			value = zend_hash_index_update(Z_ARR_P(result), 0, value);
@@ -577,12 +577,15 @@ static inline zend_result ct_eval_add_array_unpack(zval *result, const zval *arr
 static inline zend_result ct_eval_assign_dim(zval *result, zval *value, const zval *key) {
 	switch (Z_TYPE_P(result)) {
 		case IS_NULL:
-		case IS_FALSE:
 			array_init(result);
 			ZEND_FALLTHROUGH;
 		case IS_ARRAY:
 		case PARTIAL_ARRAY:
 			return ct_eval_add_array_elem(result, value, key);
+		case IS_FALSE:
+			/* "Automatic conversion of false to array is deprecated" is
+			 * emitted at run-time. */
+			return FAILURE;
 		case IS_STRING:
 			// TODO Before enabling this case, make sure ARRAY_DIM result op is correct
 #if 0
